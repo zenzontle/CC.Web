@@ -119,6 +119,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\session\sessions.html" />
+    <Content Include="app\session\sessions.js" />
+    <Content Include="ccfavicon.ico" />
+    <Content Include="content\breeze.directives.css" />
     <Content Include="fonts\fontawesome-webfont.woff" />
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.eot" />
@@ -159,7 +163,6 @@
     <Content Include="content\bootstrap-theme.min.css" />
     <Content Include="content\bootstrap.css" />
     <Content Include="content\bootstrap.min.css" />
-    <Content Include="content\breeze.directives.css" />
     <Content Include="content\customtheme.css" />
     <Content Include="content\font-awesome.css" />
     <Content Include="content\font-awesome.min.css" />
@@ -253,12 +256,11 @@
     <Content Include="Scripts\angular-mocks.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Scripts\breeze.angular.js" />
+    <Content Include="Scripts\breeze.bridge.angular.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.directives.js" />
     <Content Include="Scripts\breeze.min.js" />
     <Content Include="Scripts\breeze.saveErrorExtensions.js" />
-    <Content Include="Scripts\breeze.to%24q.shim.js" />
     <Content Include="Scripts\jquery-2.1.1.js" />
     <Content Include="Scripts\jquery-2.1.1.min.js" />
     <Content Include="Scripts\moment-with-langs.js" />
