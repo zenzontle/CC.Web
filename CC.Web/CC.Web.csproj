@@ -119,9 +119,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\attendee\attendees.html" />
+    <Content Include="app\attendee\attendees.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\session\sessions.html" />
     <Content Include="app\session\sessions.js" />
+    <Content Include="app\speaker\speakers.html" />
+    <Content Include="app\speaker\speakers.js" />
     <Content Include="ccfavicon.ico" />
     <Content Include="content\breeze.directives.css" />
     <Content Include="fonts\fontawesome-webfont.woff" />
@@ -137,8 +141,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app\admin\admin.html" />
-    <Content Include="app\admin\admin.js" />
     <Content Include="app\app.js" />
     <Content Include="app\common\bootstrap\bootstrap.dialog.js" />
     <Content Include="app\common\common.js" />

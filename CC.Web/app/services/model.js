@@ -6,16 +6,26 @@
     angular.module('app').factory(serviceId, model);
 
     function model(config) {
+
+        var entityNames = {
+            attendee: 'Person',
+            person: 'Person',
+            speaker: 'Person',
+            session: 'Session',
+            room: 'Room',
+            track: 'Track',
+            timeslot: 'TimeSlot'
+        };
+
+
         var service = {
-            configureMetadataStore: configureMetadataStore
+            configureMetadataStore: configureMetadataStore,
+            entityNames: entityNames
         };
 
         return service;
 
         function configureMetadataStore(metadataStore) {
-            //TODO register session - tags
-            //TODO register person - fullName
-            //TODO register timeslot - name
             registerTimeSlot(metadataStore);
             registerSession(metadataStore);
             registerPerson(metadataStore);
@@ -24,7 +34,9 @@
         function registerPerson(metadataStore) {
             metadataStore.registerEntityTypeCtor('Person', Person);
 
-            function Person() { }
+            function Person() {
+                this.isSpeaker = false;
+            }
 
             Object.defineProperty(Person.prototype, 'fullName', {
                 get: function () {

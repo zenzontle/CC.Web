@@ -11,22 +11,25 @@
         
         var vm = this;
 
-        vm.activate = activate;
         vm.sessions = [];
+        vm.refresh = refresh;
         vm.title = 'Sessions';
 
         activate();
 
         function activate() {
-            //TODO get our sessions
             common.activateController([getSessions()], controllerId)
                 .then(function () { log('Activated Sessions View'); });
         }
 
-        function getSessions() {
-            return datacontext.getSessionPartials().then(function (data) {
+        function getSessions(forceRefresh) {
+            return datacontext.getSessionPartials(forceRefresh).then(function (data) {
                 return vm.sessions = data;
             });
+        }
+
+        function refresh() {
+            getSessions(true);
         }
 
         //#region Internal Methods
