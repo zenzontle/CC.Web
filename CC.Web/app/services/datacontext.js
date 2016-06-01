@@ -2,9 +2,9 @@
     'use strict';
 
     var serviceId = 'datacontext';
-    angular.module('app').factory(serviceId, ['common', 'entityManagerFactory', 'model', datacontext]);
+    angular.module('app').factory(serviceId, ['common', 'config', 'entityManagerFactory', 'model', datacontext]);
 
-    function datacontext(common, emFactory, model) {
+    function datacontext(common, config, emFactory, model) {
         var EntityQuery = breeze.EntityQuery;
         var entityNames = model.entityNames;
         var getLogFn = common.logger.getLogFn;
@@ -23,9 +23,11 @@
         };
 
         var service = {
-            getPeople: getPeople,
             getAttendees: getAttendees,
+            getAttendeeCount: getAttendeeCount,
+            getFilteredCount: getFilteredCount,
             getMessageCount: getMessageCount,
+            getPeople: getPeople,
             getSessionPartials: getSessionPartials,
             getSpeakerPartials: getSpeakerPartials,
             prime: prime
@@ -48,28 +50,83 @@
             return $q.when(people);
         }
 
-        function getAttendees(forceRemote) {
+        function getAttendees(forceRemote, page, size, nameFilter) {
             var orderBy = 'firstName, lastName';
-            var attendees = [];
+
+            var take = size || 20;
+            var skip = page ? (page - 1) * size : 0;
 
             if (_areAttendeesLoaded() && !forceRemote) {
-                attendees = _getAllLocal(entityNames.attendee, orderBy);
-                return $q.when(attendees);
+                return $q.when(getByPage());
             }
 
             return EntityQuery.from('Persons')
                 .select('id, firstName, lastName, imageSource')
                 .orderBy(orderBy)
                 .toType(entityNames.attendee)
-                .using(manager).execute()
+                .using(manager)
+                .execute()
                 .then(querySucceded, _queryFailed);
 
-            function querySucceded(data) {
-                attendees = data.results;
-                _areAttendeesLoaded(true);
-                log('Retrieved [Attendees] from remote data source', attendees.length, true);
+            function getByPage() {
+                var predicate = null;
+                if (nameFilter) {
+                    predicate = _fullNamePredicate(nameFilter);
+                }
+                var attendees = EntityQuery.from(entityNames.attendee)
+                    .where(predicate)
+                    .take(take)
+                    .skip(skip)
+                    .orderBy(orderBy)
+                    .using(manager)
+                    .executeLocally();
+
                 return attendees;
             }
+
+            function querySucceded(data) {
+                _areAttendeesLoaded(true);
+                log('Retrieved [Attendees] from remote data source', data.results.length, true);
+                return getByPage();
+            }
+        }
+
+        function getAttendeeCount() {
+            if (_areAttendeesLoaded()) {
+                return $q.when(_getLocalEntityCount(entityNames.attendee));
+            }
+            return EntityQuery.from(entityNames.attendee)
+                .using(manager)
+                .execute()
+                .then(_getInlineCount);
+        }
+
+        function _getLocalEntityCount(resource) {
+            var entities = EntityQuery.from(resource)
+                .using(manager)
+                .executeLocally();
+            return entities.length;
+        }
+
+        function _getInlineCount(data) {
+            return data.inlineCount;
+        }
+
+        function getFilteredCount(nameFilter) {
+            var predicate = _fullNamePredicate(nameFilter);
+
+            var attendees = EntityQuery.from(entityNames.attendee)
+                .where(predicate)
+                .using(manager)
+                .executeLocally();
+
+            return attendees.length;
+        }
+
+        function _fullNamePredicate(filterValue) {
+            return breeze.Predicate
+                .create('firstName', 'contains', filterValue)
+                .or('lastName', 'contains', filterValue);
         }
 
         function getSpeakerPartials(forceRemote) {
@@ -184,7 +241,7 @@
         }
 
         function _queryFailed(error) {
-            var msg = config.appErrorPrefix + 'Error retreiving data.' + error.message;
+            var msg = config.appErrorPrefix + 'Error retrieving data.' + error.message;
             logError(msg, error);
             throw error;
         }
