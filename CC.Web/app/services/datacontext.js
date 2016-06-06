@@ -5,6 +5,7 @@
     angular.module('app').factory(serviceId, ['common', 'config', 'entityManagerFactory', 'model', datacontext]);
 
     function datacontext(common, config, emFactory, model) {
+        var Predicate = breeze.Predicate;
         var EntityQuery = breeze.EntityQuery;
         var entityNames = model.entityNames;
         var getLogFn = common.logger.getLogFn;
@@ -26,16 +27,17 @@
             getAttendees: getAttendees,
             getAttendeeCount: getAttendeeCount,
             getFilteredCount: getFilteredCount,
-            getMessageCount: getMessageCount,
             getPeople: getPeople,
+            getSessionCount: getSessionCount,
             getSessionPartials: getSessionPartials,
             getSpeakerPartials: getSpeakerPartials,
+            getSpeakersLocal: getSpeakersLocal,
+            getSpeakersTopLocal: getSpeakersTopLocal,
+            getTrackCounts: getTrackCounts,
             prime: prime
         };
 
         return service;
-
-        function getMessageCount() { return $q.when(72); }
 
         function getPeople() {
             var people = [
@@ -95,10 +97,65 @@
             if (_areAttendeesLoaded()) {
                 return $q.when(_getLocalEntityCount(entityNames.attendee));
             }
-            return EntityQuery.from(entityNames.attendee)
+            // Attendees aren't loaded; ask the server for a count.
+            return EntityQuery.from("Persons")
+                .take(0)
+                .inlineCount()
                 .using(manager)
                 .execute()
                 .then(_getInlineCount);
+        }
+
+        function getSessionCount() {
+            if (_areSessionsLoaded()) {
+                return $q.when(_getLocalEntityCount(entityNames.session));
+            }
+            // Sessions aren't loaded; ask the server for a count.
+            return EntityQuery.from("Sessions")
+                .take(0)
+                .inlineCount()
+                .using(manager)
+                .execute()
+                .then(_getInlineCount);
+        }
+
+        function getTrackCounts() {
+            return getSessionPartials().then(function (data) {
+                var sessions = data;
+                //loop through the sessions and create a mapped track counter object
+                var trackMap = sessions.reduce(function (accum, session) {
+                    var trackName = session.track.name;
+                    var trackId = session.track.id;
+                    if (accum[trackId - 1]) {
+                        accum[trackId - 1].count++;
+                    } else {
+                        accum[trackId - 1] = {
+                            track: trackName,
+                            count: 1
+                        };
+                    }
+                    return accum;
+                }, []);
+                return trackMap;
+            });
+        }
+
+        function getSpeakersLocal() {
+            var orderBy = 'firstName, lastName';
+            var predicate = Predicate.create('isSpeaker', '==', true);
+            return _getAllLocal(entityNames.speaker, orderBy, predicate);
+        }
+
+        function getSpeakersTopLocal() {
+            var orderBy = 'firstName, lastName';
+            var predicate = Predicate
+                .create('lastName', '==', 'Papa')
+                .or('lastName', '==', 'Guthrie')
+                .or('lastName', '==', 'Bell')
+                .or('lastName', '==', 'Hanselman')
+                .or('lastName', '==', 'Lerman')
+                .and('isSpeaker', '==', true);
+            return _getAllLocal(entityNames.speaker, orderBy, predicate);
         }
 
         function _getLocalEntityCount(resource) {
@@ -124,13 +181,13 @@
         }
 
         function _fullNamePredicate(filterValue) {
-            return breeze.Predicate
+            return Predicate
                 .create('firstName', 'contains', filterValue)
                 .or('lastName', 'contains', filterValue);
         }
 
         function getSpeakerPartials(forceRemote) {
-            var predicate = breeze.Predicate.create('isSpeaker', '==', true);
+            var predicate = Predicate.create('isSpeaker', '==', true);
             var speakerOrderBy = 'firstName, lastName';
             var speakers = [];
 
