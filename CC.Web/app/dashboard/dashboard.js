@@ -28,7 +28,7 @@
         };
         vm.news = {
             title: 'Code Camp',
-            description: 'Code Camp is a community event where developers learn from fellow developers. All are welcome to attend and speak. Code Camp is free, by and for the developer community, and occurs on the weekends.'
+            description: 'Code Camp is a community event where developers learn from fellow developers. All are welcome to attend and speak. Code Camp is free, by and for the deveoper community, and occurs on the weekends.'
         };
         vm.title = 'Dashboard';
 
@@ -42,29 +42,29 @@
         }
 
         function getAttendeeCount() {
-            return datacontext.getAttendeeCount().then(function (data) {
+            return datacontext.attendee.getCount().then(function (data) {
                 return vm.attendeeCount = data;
             });
         }
 
         function getSessionCount() {
-            return datacontext.getSessionCount().then(function (data) {
+            return datacontext.session.getCount().then(function (data) {
                 return vm.sessionCount = data;
             });
         }
 
-        function getTopSpeakers() {
-            vm.speakers.list = datacontext.getSpeakersTopLocal();
-        }
-
         function getTrackCounts() {
-            return datacontext.getTrackCounts().then(function (data) {
+            return datacontext.session.getTrackCounts().then(function (data) {
                 return vm.content.tracks = data;
             });
         }
 
+        function getTopSpeakers() {
+            vm.speakers.list = datacontext.speaker.getTopLocal();
+        }
+
         function getSpeakerCount() {
-            var speakers = datacontext.getSpeakersLocal();
+            var speakers = datacontext.speaker.getAllLocal();
             vm.speakerCount = speakers.length;
         }
 
@@ -72,5 +72,6 @@
             vm.content.predicate = prop;
             vm.content.reverse = !vm.content.reverse;
         }
+
     }
 })();

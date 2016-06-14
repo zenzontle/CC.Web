@@ -3,12 +3,13 @@
         <div class="container-fluid">
             <div class="row-fluid">
                 <div class="form-search">
-                    <input class="input-lg search-query" data-ng-model="vm.speakerSearch"
-                           data-ng-keyup="vm.search($event)" placeholder="live search..."/>
+                    <input class="input-medium search-query"
+                           data-ng-model="vm.speakerSearch"
+                           data-ng-keyup="vm.search($event)"
+                           placeholder="live search..." />
                     <div class="btn-group pull-right">
-                        <a class="btn btn-info" data-ng-click="vm.refresh()">
-                            <i class="glyphicon glyphicon-refresh"></i><span>Refresh</span>
-                        </a>
+                        <a class="btn btn-info"
+                           data-ng-click="vm.refresh()"><i class="icon-refresh"></i><span>Refresh</span></a>
                     </div>
                 </div>
             </div>
@@ -17,9 +18,11 @@
                     <div data-cc-widget-header title="{{vm.title}}"
                          subtitle="{{vm.filteredSpeakers.length}} / {{vm.speakers.length}}"></div>
                     <div class="widget-content user">
-                        <div class="padd list-flow" data-ng-repeat="s in vm.filteredSpeakers">
+                        <div class="padd list-flow"
+                             data-ng-repeat="s in vm.filteredSpeakers">
                             <div class="user">
-                                <img data-cc-img-person="{{s.imageSource}}" class="img-polaroid stacked" />
+                                <img data-cc-img-person="{{s.imageSource}}"
+                                     class="img-polaroid stacked" />
                                 <div class="name-stack">
                                     <h5>{{s.firstName}}</h5>
                                     <h5>{{s.lastName}}</h5>
@@ -27,12 +30,11 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="widget-foot">
-                    <div class="clearfix"></div>
+                    <div class="widget-foot">
+                        <div class="clearfix"></div>
+                    </div>
                 </div>
             </div>
-        </div>
         </div>
     </section>
 </section>

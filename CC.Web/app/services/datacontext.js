@@ -2,11 +2,10 @@
     'use strict';
 
     var serviceId = 'datacontext';
-    angular.module('app').factory(serviceId, ['common', 'config', 'entityManagerFactory', 'model', datacontext]);
+    angular.module('app').factory(serviceId,
+        ['common', 'entityManagerFactory', 'model', 'repositories', datacontext]);
 
-    function datacontext(common, config, emFactory, model) {
-        var Predicate = breeze.Predicate;
-        var EntityQuery = breeze.EntityQuery;
+    function datacontext(common, emFactory, model, repositories) {
         var entityNames = model.entityNames;
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(serviceId);
@@ -14,239 +13,60 @@
         var logSuccess = getLogFn(serviceId, 'success');
         var manager = emFactory.newManager();
         var primePromise;
+        var repoNames = ['attendee', 'lookup', 'session', 'speaker'];
         var $q = common.$q;
 
-        var storeMeta = {
-            isLoaded: {
-                sessions: false,
-                attendees: false
-            }
+        var service = {
+            prime: prime
+            // Repositories to be added on demand:
+            //      attendees
+            //      lookups
+            //      sessions
+            //      speakers
         };
 
-        var service = {
-            getAttendees: getAttendees,
-            getAttendeeCount: getAttendeeCount,
-            getFilteredCount: getFilteredCount,
-            getPeople: getPeople,
-            getSessionCount: getSessionCount,
-            getSessionPartials: getSessionPartials,
-            getSpeakerPartials: getSpeakerPartials,
-            getSpeakersLocal: getSpeakersLocal,
-            getSpeakersTopLocal: getSpeakersTopLocal,
-            getTrackCounts: getTrackCounts,
-            prime: prime
-        };
+        init();
 
         return service;
 
-        function getPeople() {
-            var people = [
-                { firstName: 'John', lastName: 'Papa', age: 25, location: 'Florida' },
-                { firstName: 'Ward', lastName: 'Bell', age: 31, location: 'California' },
-                { firstName: 'Colleen', lastName: 'Jones', age: 21, location: 'New York' },
-                { firstName: 'Madelyn', lastName: 'Green', age: 18, location: 'North Dakota' },
-                { firstName: 'Ella', lastName: 'Jobs', age: 18, location: 'South Dakota' },
-                { firstName: 'Landon', lastName: 'Gates', age: 11, location: 'South Carolina' },
-                { firstName: 'Haley', lastName: 'Guthrie', age: 35, location: 'Wyoming' }
-            ];
-            return $q.when(people);
+        function init() {
+            repositories.init(manager);
+            defineLazyLoadedRepos();
         }
 
-        function getAttendees(forceRemote, page, size, nameFilter) {
-            var orderBy = 'firstName, lastName';
-
-            var take = size || 20;
-            var skip = page ? (page - 1) * size : 0;
-
-            if (_areAttendeesLoaded() && !forceRemote) {
-                return $q.when(getByPage());
-            }
-
-            return EntityQuery.from('Persons')
-                .select('id, firstName, lastName, imageSource')
-                .orderBy(orderBy)
-                .toType(entityNames.attendee)
-                .using(manager)
-                .execute()
-                .then(querySucceded, _queryFailed);
-
-            function getByPage() {
-                var predicate = null;
-                if (nameFilter) {
-                    predicate = _fullNamePredicate(nameFilter);
-                }
-                var attendees = EntityQuery.from(entityNames.attendee)
-                    .where(predicate)
-                    .take(take)
-                    .skip(skip)
-                    .orderBy(orderBy)
-                    .using(manager)
-                    .executeLocally();
-
-                return attendees;
-            }
-
-            function querySucceded(data) {
-                _areAttendeesLoaded(true);
-                log('Retrieved [Attendees] from remote data source', data.results.length, true);
-                return getByPage();
-            }
-        }
-
-        function getAttendeeCount() {
-            if (_areAttendeesLoaded()) {
-                return $q.when(_getLocalEntityCount(entityNames.attendee));
-            }
-            // Attendees aren't loaded; ask the server for a count.
-            return EntityQuery.from("Persons")
-                .take(0)
-                .inlineCount()
-                .using(manager)
-                .execute()
-                .then(_getInlineCount);
-        }
-
-        function getSessionCount() {
-            if (_areSessionsLoaded()) {
-                return $q.when(_getLocalEntityCount(entityNames.session));
-            }
-            // Sessions aren't loaded; ask the server for a count.
-            return EntityQuery.from("Sessions")
-                .take(0)
-                .inlineCount()
-                .using(manager)
-                .execute()
-                .then(_getInlineCount);
-        }
-
-        function getTrackCounts() {
-            return getSessionPartials().then(function (data) {
-                var sessions = data;
-                //loop through the sessions and create a mapped track counter object
-                var trackMap = sessions.reduce(function (accum, session) {
-                    var trackName = session.track.name;
-                    var trackId = session.track.id;
-                    if (accum[trackId - 1]) {
-                        accum[trackId - 1].count++;
-                    } else {
-                        accum[trackId - 1] = {
-                            track: trackName,
-                            count: 1
-                        };
+        // Add ES5 property to datacontext for each named repo
+        function defineLazyLoadedRepos() {
+            repoNames.forEach(function (name) {
+                Object.defineProperty(service, name, {
+                    configurable: true, // will redefine this property once
+                    get: function () {
+                        // The 1st time the repo is request via this property, 
+                        // we ask the repositories for it (which will inject it).
+                        var repo = repositories.getRepo(name);
+                        // Rewrite this property to always return this repo;
+                        // no longer redefinable
+                        Object.defineProperty(service, name, {
+                            value: repo,
+                            configurable: false,
+                            enumerable: true
+                        });
+                        return repo;
                     }
-                    return accum;
-                }, []);
-                return trackMap;
+                });
             });
-        }
-
-        function getSpeakersLocal() {
-            var orderBy = 'firstName, lastName';
-            var predicate = Predicate.create('isSpeaker', '==', true);
-            return _getAllLocal(entityNames.speaker, orderBy, predicate);
-        }
-
-        function getSpeakersTopLocal() {
-            var orderBy = 'firstName, lastName';
-            var predicate = Predicate
-                .create('lastName', '==', 'Papa')
-                .or('lastName', '==', 'Guthrie')
-                .or('lastName', '==', 'Bell')
-                .or('lastName', '==', 'Hanselman')
-                .or('lastName', '==', 'Lerman')
-                .and('isSpeaker', '==', true);
-            return _getAllLocal(entityNames.speaker, orderBy, predicate);
-        }
-
-        function _getLocalEntityCount(resource) {
-            var entities = EntityQuery.from(resource)
-                .using(manager)
-                .executeLocally();
-            return entities.length;
-        }
-
-        function _getInlineCount(data) {
-            return data.inlineCount;
-        }
-
-        function getFilteredCount(nameFilter) {
-            var predicate = _fullNamePredicate(nameFilter);
-
-            var attendees = EntityQuery.from(entityNames.attendee)
-                .where(predicate)
-                .using(manager)
-                .executeLocally();
-
-            return attendees.length;
-        }
-
-        function _fullNamePredicate(filterValue) {
-            return Predicate
-                .create('firstName', 'contains', filterValue)
-                .or('lastName', 'contains', filterValue);
-        }
-
-        function getSpeakerPartials(forceRemote) {
-            var predicate = Predicate.create('isSpeaker', '==', true);
-            var speakerOrderBy = 'firstName, lastName';
-            var speakers = [];
-
-            if (!forceRemote) {
-                speakers = _getAllLocal(entityNames.speaker, speakerOrderBy, predicate);
-                return $q.when(speakers);
-            }
-
-            return EntityQuery.from('Speakers')
-                .select('id, firstName, lastName, imageSource')
-                .orderBy(speakerOrderBy)
-                .toType(entityNames.speaker)
-                .using(manager).execute()
-                .then(querySucceded, _queryFailed);
-
-            function querySucceded(data) {
-                speakers = data.results;
-                for (var i = speakers.length; i--;) {
-                    speakers[i].isSpeaker = true;
-                }
-                log('Retrieved [Speakers Partials] from remote data source', speakers.length, true);
-                return speakers;
-            }
-        }
-
-        function getSessionPartials(forceRemote) {
-            var orderBy = 'timeSlotId, level, speaker.firstName';
-            var sessions;
-
-            if (_areSessionsLoaded() && !forceRemote) {
-                sessions = _getAllLocal(entityNames.session, orderBy);
-                return $q.when(sessions);
-            }
-
-            return EntityQuery.from('Sessions')
-                .select('id, title, code, speakerId, trackId, timeSlotId, roomId, level, tags')
-                .orderBy(orderBy)
-                .toType(entityNames.session)
-                .using(manager).execute()
-                .then(querySucceded, _queryFailed);
-
-            function querySucceded(data) {
-                sessions = data.results;
-                _areSessionsLoaded(true);
-                log('Retrieved [Session Partials] from remote data source', sessions.length, true);
-                return sessions;
-            }
         }
 
         function prime() {
             if (primePromise) return primePromise;
 
-            primePromise = $q.all([getLookups(), getSpeakerPartials(true)])
+            primePromise = $q.all([service.lookup.getAll(),
+                service.speaker.getPartials(true)])
                 .then(extendMetadata)
                 .then(success);
             return primePromise;
 
             function success() {
-                setLookups();
+                service.lookup.setLookups();
                 log('Primed the data');
             }
 
@@ -268,54 +88,6 @@
                     metadataStore.setEntityTypeForResourceName(resourceName, entityName);
                 }
             }
-        }
-
-        function setLookups() {
-            service.lookupCachedData = {
-                rooms: _getAllLocal(entityNames.room, 'name'),
-                tracks: _getAllLocal(entityNames.track, 'name'),
-                timeslots: _getAllLocal(entityNames.timeslot, 'start'),
-            };
-        }
-
-        function _getAllLocal(resource, ordering, predicate) {
-            return EntityQuery.from(resource)
-                .orderBy(ordering)
-                .where(predicate)
-                .using(manager)
-                .executeLocally();
-        }
-
-        function getLookups() {
-            return EntityQuery.from('Lookups')
-                .using(manager).execute()
-                .then(querySucceeded, _queryFailed);
-
-            function querySucceeded(data) {
-                log('Retrieved [Lookups]', data, true);
-                return true;
-            }
-        }
-
-        function _queryFailed(error) {
-            var msg = config.appErrorPrefix + 'Error retrieving data.' + error.message;
-            logError(msg, error);
-            throw error;
-        }
-
-        function _areSessionsLoaded(value) {
-            return _areItemsLoaded('sessions', value);
-        }
-
-        function _areAttendeesLoaded(value) {
-            return _areItemsLoaded('attendees', value);
-        }
-
-        function _areItemsLoaded(key, value) {
-            if (value === undefined) {
-                return storeMeta.isLoaded[key];
-            }
-            return storeMeta.isLoaded[key] = value;
         }
     }
 })();

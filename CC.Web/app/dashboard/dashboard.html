@@ -1,13 +1,14 @@
 ﻿<section id="dashboard-view" class="mainbar" data-ng-controller="dashboard as vm">
     <section class="matter">
-        <div class="container">
-            <div class="row">
+        <div class="container-fluid">
+            <div class="row-fluid">
                 <div class="col-md-12">
                     <ul class="today-datas">
                         <li class="blightblue">
                             <div class="pull-left"><i class="fa fa-plane"></i></div>
                             <div class="datas-text pull-right">
-                                <span class="bold">May 18 - 19, 2015</span> Castle Resort, Neverland
+                                <span class="bold">May 18 - 19, 2015</span> Castle
+                                Resort, Neverland
                             </div>
                             <div class="clearfix"></div>
                         </li>
@@ -41,19 +42,20 @@
                                 <div class="clearfix"></div>
                             </a>
                         </li>
+
                     </ul>
                 </div>
             </div>
-
-            <div class="row">
+            <div class="row-fluid">
                 <div class="col-md-6">
                     <div class="widget wgreen">
                         <div data-cc-widget-header title="{{vm.map.title}}"
                              allow-collapse="true"></div>
                         <div class="widget-content">
                             <div class="map">
-                                <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2932.13437153879!2d-111.0264108690959!3d29.07865495293817!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86ce83c1aac2ae91%3A0xb200a89b840f3f54!2zMjnCsDA0JzM4LjgiTiAxMTHCsDAxJzMwLjEiVw!5e0!3m2!1sen!2smx!4v1465172361224"
-                                        width="400" height="230" frameborder="0" style="border:0" allowfullscreen></iframe>
+                                <iframe width="400" height="230" frameborder="0" scrolling="no" marginheight="0"
+                                        marginwidth="0"
+                                        src="http://dev.virtualearth.net/embeddedMap/v1/ajax/road?zoomLevel=15&center=28.415119_-81.576831&pushpins=28.415119_-81.576831" />
                             </div>
                         </div>
                     </div>
@@ -79,7 +81,8 @@
                 </div>
             </div>
 
-            <div class="row">
+
+            <div class="row-fluid">
                 <div class="col-md-4">
                     <div class="widget wviolet">
                         <div data-cc-widget-header title="{{vm.content.title}}"
@@ -89,13 +92,12 @@
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
-                                            <th><a data-ng-click="vm.content.setSort('track')">Track</a></th>
-                                            <th><a data-ng-click="vm.content.setSort('count')">Session</a></th>
+                                            <th><a data-ng-click="vm.content.setSort('track')" href="">Track</a></th>
+                                            <th><a data-ng-click="vm.content.setSort('count')" href="">Sessions</a></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-ng-repeat="t in vm.content.tracks
-                                            | orderBy:vm.content.predicate:vm.content.reverse">
+                                        <tr data-ng-repeat="t in vm.content.tracks | orderBy:vm.content.predicate:vm.content.reverse">
                                             <td>{{t.track}}</td>
                                             <td>{{t.count}}</td>
                                         </tr>
