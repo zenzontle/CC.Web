@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.abstract';
 
-    angular.module('app').factory(serviceId, ['common', AbstractRepository]);
+    angular.module('app').factory(serviceId, ['common', 'config', AbstractRepository]);
 
-    function AbstractRepository(common) {
+    function AbstractRepository(common, config) {
         var EntityQuery = breeze.EntityQuery;
         var logError = common.logger.getLogFn(this.serviceId, 'error');
 
@@ -25,9 +25,11 @@
         // Shared by repository classes 
         Ctor.prototype._areItemsLoaded = _areItemsLoaded;
         Ctor.prototype._getAllLocal = _getAllLocal;
+        Ctor.prototype._getById = _getById;
         Ctor.prototype._getInlineCount = _getInlineCount;
         Ctor.prototype._getLocalEntityCount = _getLocalEntityCount;
         Ctor.prototype._queryFailed = _queryFailed;
+        Ctor.prototype._setIsPartialTrue = _setIsPartialTrue;
         // Convenience functions for the Repos
         Ctor.prototype.log = common.logger.getLogFn(this.serviceId);
         Ctor.prototype.$q = common.$q;
@@ -49,6 +51,38 @@
                 .executeLocally();
         }
 
+        function _getById(entityName, id, forceRemote) {
+            var self = this;
+            var manager = self.manager;
+            if (!forceRemote) {
+                // check cache first
+                var entity = manager.getEntityByKey(entityName, id);
+                if (entity && !entity.isPartial) {
+                    self.log('Retrieved [' + entityName + '] id:' + entity.id + ' from cache.', entity, true);
+                    if (entity.entityAspect.entityState.isDeleted()) {
+                        entity = null; // hide session marked-for-delete
+                    }
+                    return self.$q.when(entity);
+                }
+                //Hit the server
+                //it was not found in cache, so let's query for it.
+                return manager.fetchEntityByKey(entityName, id)
+                    .then(querySucceeded, self._queryFailed);
+
+                function querySucceeded(data) {
+                    entity = data.entity;
+                    if (!entity) {
+                        self.log('Could not find [' + entityName + '] id: ' + id, null, true);
+                        return null;
+                    }
+                    entity.isPartial = false;
+                    self.log('Retrieved [' + entityName + '] id:' + entity.id + ' from remote data source.',
+                        entity, true);
+                    return entity;
+                }
+            }
+        }
+
         function _getLocalEntityCount(resource) {
             var entities = EntityQuery.from(resource)
                 .using(this.manager)
@@ -62,6 +96,13 @@
             var msg = config.appErrorPrefix + 'Error retrieving data.' + error.message;
             logError(msg, error);
             throw error;
+        }
+
+        function _setIsPartialTrue(entities) {
+            for (var i = entities.length; i--;) {
+                entities[i].isPartial = true;
+            }
+            return entities;
         }
     }
 })();

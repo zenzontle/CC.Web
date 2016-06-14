@@ -19,8 +19,9 @@
                          subtitle="{{vm.filteredSpeakers.length}} / {{vm.speakers.length}}"></div>
                     <div class="widget-content user">
                         <div class="padd list-flow"
-                             data-ng-repeat="s in vm.filteredSpeakers">
-                            <div class="user">
+                             data-ng-repeat="s in vm.filteredSpeakers"
+                             data-ng-click="vm.gotoSpeaker(s)">
+                            <div class="user" title="Go to speaker details">
                                 <img data-cc-img-person="{{s.imageSource}}"
                                      class="img-polaroid stacked" />
                                 <div class="name-stack">

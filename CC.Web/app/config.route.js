@@ -71,6 +71,14 @@
                     }
                 }
             }, {
+                url: '/speaker/:id',
+                config: {
+                    title: 'speaker',
+                    templateUrl: 'app/speaker/speakerdetail.html',
+                    settings: {
+                    }
+                }
+            }, {
                 url: '/attendees',
                 config: {
                     title: 'attendees',

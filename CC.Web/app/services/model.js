@@ -35,6 +35,7 @@
             metadataStore.registerEntityTypeCtor('Person', Person);
 
             function Person() {
+                this.isPartial = false;
                 this.isSpeaker = false;
             }
 

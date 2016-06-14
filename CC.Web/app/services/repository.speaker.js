@@ -17,6 +17,7 @@
             this.manager = mgr;
             // Exposed data access functions
             this.getAllLocal = getAllLocal;
+            this.getById = getById;
             this.getTopLocal = getTopLocal;
             this.getPartials = getPartials;
         }
@@ -30,6 +31,10 @@
             var self = this;
             var predicate = Predicate.create('isSpeaker', '==', true);
             return self._getAllLocal(entityName, orderBy, predicate);
+        }
+
+        function getById(id, forceRemote) {
+            return this._getById(entityName, id, forceRemote);
         }
 
         // Formerly known as datacontext.getSpeakerPartials()
@@ -55,6 +60,7 @@
                 speakers = data.results;
                 for (var i = speakers.length; i--;) {
                     speakers[i].isSpeaker = true;
+                    speakers[i].isPartial = true;
                 }
                 self.log('Retrieved [Speaker Partials] from remote data source', speakers.length, true);
                 return speakers;
