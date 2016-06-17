@@ -68,6 +68,8 @@
         function goBack() { $window.history.back(); }
 
         function save() {
+            if (!canSave()) { return $q.when(null); } //Must return a promise
+
             vm.isSaving = true;
             return datacontext.save()
                 .then(function (saveResult) {

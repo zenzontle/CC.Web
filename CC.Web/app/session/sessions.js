@@ -8,9 +8,9 @@
     // Inject the dependencies. 
     // Point to the controller definition function.
     angular.module('app').controller(controllerId,
-        ['$routeParams', 'common', 'config', 'datacontext', sessions]);
+        ['$location', '$routeParams', 'common', 'config', 'datacontext', sessions]);
 
-    function sessions($routeParams, common, config, datacontext) {
+    function sessions($location, $routeParams, common, config, datacontext) {
         // Using 'Controller As' syntax, so we assign this to the vm variable (for viewmodel).
         var vm = this;
         var getLogFn = common.logger.getLogFn;
@@ -21,6 +21,7 @@
 
         // Bindable properties and functions are placed on vm.
         vm.filteredSessions = [];
+        vm.gotoSession = gotoSession;
         vm.search = search;
         vm.sessionsSearch = $routeParams.search || '';
         vm.sessionsFilter = sessionsFilter;
@@ -49,6 +50,12 @@
                 .then(function (data) {
                     return vm.sessions = vm.filteredSessions = data;
                 });
+        }
+
+        function gotoSession(session) {
+            if (session && session.id) {
+                $location.path('/session/' + session.id);
+            }
         }
 
         function refresh() { getSessions(true); }

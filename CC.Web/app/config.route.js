@@ -54,6 +54,13 @@
                     }
                 }
             }, {
+                url: '/session/:id',
+                config: {
+                    title: 'session',
+                    templateUrl: 'app/session/sessiondetail.html',
+                    settings: { }
+                }
+            }, {
                 url: '/sessions/search/:search',
                 config: {
                     title: 'sessions-search',
@@ -75,8 +82,7 @@
                 config: {
                     title: 'speaker',
                     templateUrl: 'app/speaker/speakerdetail.html',
-                    settings: {
-                    }
+                    settings: { }
                 }
             }, {
                 url: '/attendees',

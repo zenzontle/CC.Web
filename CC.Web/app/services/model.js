@@ -51,7 +51,9 @@
         function registerSession(metadataStore) {
             metadataStore.registerEntityTypeCtor('Session', Session);
 
-            function Session() { }
+            function Session() {
+                this.isPartial = false;
+            }
 
             Object.defineProperty(Session.prototype, 'tagsFormatted', {
                 get: function () {
