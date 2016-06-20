@@ -36,6 +36,7 @@
                 .then(querySucceeded, self._queryFailed);
 
             function querySucceeded(data) {
+                model.createNullos(self.manager);
                 self.log('Retrieved [Lookups]', data, true);
                 return true;
             }

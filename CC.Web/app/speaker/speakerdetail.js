@@ -5,15 +5,14 @@
     var controllerId = 'speakerdetail';
 
     angular.module('app').controller(controllerId,
-        ['$routeParams', '$scope', '$window', 'common', 'config', 'datacontext', speakerdetail]);
+        ['$location', '$routeParams', '$scope', '$window', 'common', 'config', 'datacontext', speakerdetail]);
 
-    function speakerdetail($routeParams, $scope, $window, common, config, datacontext) {
+    function speakerdetail($location, $routeParams, $scope, $window, common, config, datacontext) {
         var vm = this;
         var logError = common.logger.getLogFn(controllerId, 'error');
 
         vm.activate = activate;
         vm.cancel = cancel;
-        vm.getTitle = getTitle;
         vm.goBack = goBack;
         vm.hasChanges = false;
         vm.isSaving = false;
@@ -36,7 +35,12 @@
 
         function cancel() {
             datacontext.cancel();
+            if (vm.speaker.entityAspect.entityState.isDetached()) {
+                gotoSpeakers();
+            }
         }
+
+        function gotoSpeakers() { $location.path('/speakers'); }
 
         function onDestroy() {
             $scope.$on('$destroy', function () {
@@ -53,16 +57,17 @@
         function getRequestedSpeaker() {
             var val = $routeParams.id;
 
+            if (val === 'new') {
+                vm.speaker = datacontext.speaker.create();
+                return vm.speaker;
+            }
+
             return datacontext.speaker.getById(val)
                 .then(function (data) {
                     vm.speaker = data;
                 }, function (error) {
                     logError('Unable to get speaker ' + val);
                 });
-        }
-
-        function getTitle() {
-            return 'Edit ' + ((vm.speaker && vm.speaker.fullName) || '');
         }
 
         function goBack() { $window.history.back(); }

@@ -16,6 +16,7 @@
             this.entityName = entityName;
             this.manager = mgr;
             // Exposed data access functions
+            this.create = create;
             this.getAllLocal = getAllLocal;
             this.getById = getById;
             this.getTopLocal = getTopLocal;
@@ -26,10 +27,17 @@
 
         return Ctor;
 
+        function create() {
+            return this.manager.createEntity(entityName);
+        }
+
         // Formerly known as datacontext.getLocal()
-        function getAllLocal() {
+        function getAllLocal(includeNullo) {
             var self = this;
             var predicate = Predicate.create('isSpeaker', '==', true);
+            if (includeNullo) {
+                predicate = predicate.or(this._predicates.isNullo);
+            }
             return self._getAllLocal(entityName, orderBy, predicate);
         }
 

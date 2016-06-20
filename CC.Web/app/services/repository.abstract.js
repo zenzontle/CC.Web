@@ -8,6 +8,10 @@
     function AbstractRepository(common, config) {
         var EntityQuery = breeze.EntityQuery;
         var logError = common.logger.getLogFn(this.serviceId, 'error');
+        var _predicates = {
+            isNotNullo: breeze.Predicate.create('id', '!=', 0),
+            isNullo: breeze.Predicate.create('id', '==', 0),
+        }
 
         // Abstract repo gets its derived object's this.manager
         function Ctor() {
@@ -28,6 +32,7 @@
         Ctor.prototype._getById = _getById;
         Ctor.prototype._getInlineCount = _getInlineCount;
         Ctor.prototype._getLocalEntityCount = _getLocalEntityCount;
+        Ctor.prototype._predicates = _predicates;
         Ctor.prototype._queryFailed = _queryFailed;
         Ctor.prototype._setIsPartialTrue = _setIsPartialTrue;
         // Convenience functions for the Repos

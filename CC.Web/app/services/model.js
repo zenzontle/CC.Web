@@ -6,7 +6,7 @@
     angular.module('app').factory(serviceId, model);
 
     function model(config) {
-
+        var nulloDate = new Date(1900, 0, 1);
         var entityNames = {
             attendee: 'Person',
             person: 'Person',
@@ -20,6 +20,7 @@
 
         var service = {
             configureMetadataStore: configureMetadataStore,
+            createNullos: createNullos,
             entityNames: entityNames
         };
 
@@ -29,6 +30,21 @@
             registerTimeSlot(metadataStore);
             registerSession(metadataStore);
             registerPerson(metadataStore);
+        }
+
+        function createNullos(manager) {
+            var unchanged = breeze.EntityState.Unchanged;
+
+            createNullo(entityNames.timeslot, { start: nulloDate, isSessionSlot: true });
+            createNullo(entityNames.room);
+            createNullo(entityNames.track);
+            createNullo(entityNames.speaker, {firstName: ' [Select a person]'});
+
+            function createNullo(entityName, values) {
+                var initialValues = values || { name: ' [Select a ' + entityName.toLowerCase() + ']' };
+                return manager.createEntity(entityName, initialValues, unchanged);
+            }
+
         }
 
         function registerPerson(metadataStore) {
@@ -74,7 +90,10 @@
                 get: function () {
                     //formatted dates are good!
                     var start = this.start;
-                    var value = moment.utc(start).format('ddd hh:mm a');
+                    var value = ((start - nulloDate) === 0) ?
+                        ' [Select a timeslot]' :
+                        (start && moment.utc(start).isValid()) ?
+                        moment.utc(start).format('ddd hh:mm a') : ' [Unknown]';
                     return value;
                 }
             })
