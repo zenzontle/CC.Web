@@ -46,7 +46,7 @@
                 .then(querySucceeded, self._queryFailed);
 
             function querySucceeded(data) {
-                var attendees = self._isIsPartialTrue(data.results);
+                var attendees = self._setIsPartialTrue(data.results);
                 self._areItemsLoaded(true);
                 self.log('Retrieved [Attendees] from remote data source', attendees.length, true);
                 return getByPage();
