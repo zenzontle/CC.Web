@@ -16,6 +16,7 @@
             this.entityName = entityName;
             this.manager = mgr;
             // Exposed data access functions
+            this.calcIsSpeaker = calcIsSpeaker;
             this.create = create;
             this.getAllLocal = getAllLocal;
             this.getById = getById;
@@ -26,6 +27,14 @@
         AbstractRepository.extend(Ctor);
 
         return Ctor;
+
+        function calcIsSpeaker() {
+            var self = this;
+            var persons = self.manager.getEntities(model.entityNames.person);
+            var sessions = self.manager.getEntities(model.entityNames.session);
+            persons.forEach(function (s) { s.isSpeaker = false; });
+            sessions.forEach(function (s) { s.speaker.isSpeaker = (s.speakerId !== 0); })
+        }
 
         function create() {
             return this.manager.createEntity(entityName);

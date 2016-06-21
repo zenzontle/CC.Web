@@ -19,6 +19,7 @@
 
         var service = {
             cancel: cancel,
+            markDeleted: markDeleted,
             prime: prime,
             save: save
 
@@ -66,6 +67,10 @@
                     }
                 });
             });
+        }
+
+        function markDeleted(entity) {
+            return entity.entityAspect.setDeleted();
         }
 
         function prime() {

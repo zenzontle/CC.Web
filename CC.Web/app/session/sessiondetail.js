@@ -4,15 +4,16 @@
     var controllerId = 'sessiondetail';
 
     angular.module('app').controller(controllerId,
-        ['$location', '$scope', '$routeParams', '$window', 'common', 'config', 'datacontext', sessiondetail]);
+        ['$location', '$scope', '$routeParams', '$window', 'bootstrap.dialog', 'common', 'config', 'datacontext', sessiondetail]);
 
-    function sessiondetail($location, $scope, $routeParams, $window, common, config, datacontext) {
+    function sessiondetail($location, $scope, $routeParams, $window, bsDialog, common, config, datacontext) {
         var vm = this;
         var logError = common.logger.getLogFn(controllerId, 'error');
         var $q = common.$q;
 
         vm.activate = activate;
         vm.cancel = cancel;
+        vm.deleteSession = deleteSession;
         vm.goBack = goBack;
         vm.hasChanges = false;
         vm.isSaving = false;
@@ -41,6 +42,20 @@
             datacontext.cancel();
             if (vm.session.entityAspect.entityState.isDetached()) {
                 gotoSessions();
+            }
+        }
+
+        function deleteSession() {
+            return bsDialog.deleteDialog('Session')
+                .then(confirmDelete);
+
+            function confirmDelete() {
+                datacontext.markDeleted(vm.session);
+                vm.save().then(success, failed);
+
+                function success() { gotoSessions(); }
+
+                function failed(error) { cancel(); }
             }
         }
 
@@ -92,6 +107,7 @@
             return datacontext.save()
                 .then(function (saveResult) {
                     vm.isSaving = false;
+                    datacontext.speaker.calcIsSpeaker();
                 }, function (error) {
                     vm.isSaving = false;
                 });
