@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.attendee';
     angular.module('app').factory(serviceId,
-        ['model', 'repository.abstract', RepositoryAttendee]);
+        ['model', 'repository.abstract', 'zStorage', RepositoryAttendee]);
 
-    function RepositoryAttendee(model, AbstractRepository) {
+    function RepositoryAttendee(model, AbstractRepository, zStorage) {
         var entityName = model.entityNames.attendee;
         var EntityQuery = breeze.EntityQuery;
         var orderBy = 'firstName, lastName';
@@ -15,6 +15,7 @@
             this.serviceId = serviceId;
             this.entityName = entityName;
             this.manager = mgr;
+            this.zStorage = zStorage;
             // Exposed data access functions
             this.getAll = getAll;
             this.getCount = getCount;
@@ -32,7 +33,7 @@
             var take = size || 20;
             var skip = page ? (page - 1) * size : 0;
 
-            if (self._areItemsLoaded() && !forceRemote) {
+            if (self.zStorage.areItemsLoaded('attendees') && !forceRemote) {
                 // Get the page of attendees from local cache
                 return self.$q.when(getByPage());
             }
@@ -47,7 +48,8 @@
 
             function querySucceeded(data) {
                 var attendees = self._setIsPartialTrue(data.results);
-                self._areItemsLoaded(true);
+                self.zStorage.areItemsLoaded('attendees', true);
+                self.zStorage.save();
                 self.log('Retrieved [Attendees] from remote data source', attendees.length, true);
                 return getByPage();
             }
@@ -73,7 +75,7 @@
         // Formerly known as datacontext.getAttendeeCount()
         function getCount() {
             var self = this;
-            if (self._areItemsLoaded()) {
+            if (self.zStorage.areItemsLoaded('attendees')) {
                 return self.$q.when(self._getLocalEntityCount(entityName));
             }
             // Attendees aren't loaded; ask the server for a count.

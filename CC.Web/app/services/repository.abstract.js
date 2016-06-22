@@ -27,7 +27,6 @@
         };
 
         // Shared by repository classes 
-        Ctor.prototype._areItemsLoaded = _areItemsLoaded;
         Ctor.prototype._getAllLocal = _getAllLocal;
         Ctor.prototype._getById = _getById;
         Ctor.prototype._getInlineCount = _getInlineCount;
@@ -40,13 +39,6 @@
         Ctor.prototype.$q = common.$q;
         
         return Ctor;
-
-        function _areItemsLoaded(value) {
-            if (value === undefined) {
-                return this.isLoaded; // get
-            }
-            return this.isLoaded = value; // set
-        }
 
         function _getAllLocal(resource, ordering, predicate) {
             return EntityQuery.from(resource)
@@ -83,6 +75,7 @@
                     entity.isPartial = false;
                     self.log('Retrieved [' + entityName + '] id:' + entity.id + ' from remote data source.',
                         entity, true);
+                    self.zStorage.save();
                     return entity;
                 }
             }

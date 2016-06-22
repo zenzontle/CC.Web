@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.speaker';
     angular.module('app').factory(serviceId,
-        ['model', 'repository.abstract', RepositorySpeaker]);
+        ['model', 'repository.abstract', 'zStorage', RepositorySpeaker]);
 
-    function RepositorySpeaker(model, AbstractRepository) {
+    function RepositorySpeaker(model, AbstractRepository, zStorage) {
         var entityName = model.entityNames.speaker;
         var EntityQuery = breeze.EntityQuery;
         var orderBy = 'firstName, lastName';
@@ -15,6 +15,7 @@
             this.serviceId = serviceId;
             this.entityName = entityName;
             this.manager = mgr;
+            this.zStorage = zStorage;
             // Exposed data access functions
             this.calcIsSpeaker = calcIsSpeaker;
             this.create = create;
@@ -79,6 +80,7 @@
                     speakers[i].isSpeaker = true;
                     speakers[i].isPartial = true;
                 }
+                self.zStorage.save();
                 self.log('Retrieved [Speaker Partials] from remote data source', speakers.length, true);
                 return speakers;
             }

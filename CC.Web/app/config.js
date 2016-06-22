@@ -36,7 +36,12 @@
     var events = {
         controllerActivateSuccess: 'controller.activateSuccess',
         hasChangesChanged: 'datacontext.hasChangedChanged',
-        spinnerToggle: 'spinner.toggle'
+        spinnerToggle: 'spinner.toggle',
+        storage: {
+            error: 'store.error',
+            storeChanged: 'store.changed',
+            wipChanged: 'wip.changed'
+        }
     };
 
     var config = {
@@ -57,6 +62,20 @@
             $logProvider.debugEnabled(true);
         }
     }]);
+    
+    //#region Configure the zStorage
+    app.config(['zStorageConfigProvider', function (cfg) {
+        cfg.config = {
+            enabled: true,
+            key: 'CCAngularBreeze',
+            events: events.storage,
+            wipKey: 'CCAngularBreeze.wip',
+            appErrorPrefix: config.appErrorPrefix,
+            newGuid: breeze.core.getUuid,
+            version: config.version
+        };
+    }]);
+    //#endregion
     
     //#region Configure the common services via commonConfig
     app.config(['commonConfigProvider', function (cfg) {

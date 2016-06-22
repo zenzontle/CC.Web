@@ -3,9 +3,9 @@
 
     var serviceId = 'datacontext';
     angular.module('app').factory(serviceId,
-        ['common', 'config', 'entityManagerFactory', 'model', 'repositories', datacontext]);
+        ['$rootScope', 'common', 'config', 'entityManagerFactory', 'model', 'repositories', 'zStorage', datacontext]);
 
-    function datacontext(common, config, emFactory, model, repositories) {
+    function datacontext($rootScope, common, config, emFactory, model, repositories, zStorage) {
         var entityNames = model.entityNames;
         var events = config.events;
         var getLogFn = common.logger.getLogFn;
@@ -21,7 +21,8 @@
             cancel: cancel,
             markDeleted: markDeleted,
             prime: prime,
-            save: save
+            save: save,
+            zStorage: zStorage
 
             // Repositories to be added on demand:
             //      attendees
@@ -35,9 +36,11 @@
         return service;
 
         function init() {
+            zStorage.init(manager);
             repositories.init(manager);
             defineLazyLoadedRepos();
             setupEventForHasChangesChanged();
+            listenForStorageEvents();
         }
 
         function cancel() {
@@ -73,17 +76,33 @@
             return entity.entityAspect.setDeleted();
         }
 
+        function listenForStorageEvents() {
+            $rootScope.$on(config.events.storage.storeChanged, function (event, data) {
+                log('Updated local storage', data, true);
+            });
+            $rootScope.$on(config.events.storage.wipChanged, function (event, data) {
+                log('Updated WIP', data, true);
+            });
+            $rootScope.$on(config.events.storage.error, function (event, data) {
+                log('Errow with local storage. ' + data.activity, data, true);
+            });
+        }
+
         function prime() {
             if (primePromise) return primePromise;
 
-            primePromise = $q.all([service.lookup.getAll(),
-                service.speaker.getPartials(true)])
-                .then(extendMetadata)
-                .then(success);
-            return primePromise;
+            var storageEnabledAndHasData = zStorage.load(manager);
+
+            primePromise = storageEnabledAndHasData ?
+                $q.when(log('Loading entities and metadata from local storage')) :
+                $q.all([service.lookup.getAll(), service.speaker.getPartials(true)])
+                .then(extendMetadata);
+
+            return primePromise.then(success);
 
             function success() {
                 service.lookup.setLookups();
+                zStorage.save();
                 log('Primed the data');
             }
 
@@ -117,6 +136,7 @@
                 .then(saveSucceeded, saveFailed);
 
             function saveSucceeded(result) {
+                zStorage.save();
                 logSuccess('Saved data', result, true);
             }
 

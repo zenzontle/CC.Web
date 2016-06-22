@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.session';
     angular.module('app').factory(serviceId,
-        ['model', 'repository.abstract', RepositorySession]);
+        ['model', 'repository.abstract', 'zStorage', RepositorySession]);
 
-    function RepositorySession(model, AbstractRepository) {
+    function RepositorySession(model, AbstractRepository, zStorage) {
         var entityName = model.entityNames.session;
         var EntityQuery = breeze.EntityQuery;
         var orderBy = 'timeSlotId, level, speaker.firstName';
@@ -14,6 +14,7 @@
             this.serviceId = serviceId;
             this.entityName = entityName;
             this.manager = mgr;
+            this.zStorage = zStorage;
             // Exposed data access functions
             this.create = create;
             this.getById = getById;
@@ -37,7 +38,7 @@
         // Formerly known as datacontext.getSessionCount() {
         function getCount() {
             var self = this;
-            if (self._areItemsLoaded()) {
+            if (self.zStorage.areItemsLoaded('sessions')) {
                 return self.$q.when(self._getLocalEntityCount(entityName));
             }
             // Sessions aren't loaded; ask the server for a count.
@@ -74,7 +75,7 @@
             var self = this;
             var sessions;
 
-            if (self._areItemsLoaded() && !forceRemote) {
+            if (self.zStorage.areItemsLoaded('sessions') && !forceRemote) {
                 sessions = self._getAllLocal(entityName, orderBy);
                 return self.$q.when(sessions);
             }
@@ -88,7 +89,8 @@
 
             function querySucceeded(data) {
                 sessions = self._setIsPartialTrue(data.results);
-                self._areItemsLoaded(true);
+                self.zStorage.areItemsLoaded('sessions', true);
+                self.zStorage.save();
                 self.log('Retrieved [Session Partials] from remote data source', sessions.length, true);
                 return sessions;
             }

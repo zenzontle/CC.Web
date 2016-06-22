@@ -3,12 +3,13 @@
     
     var controllerId = 'sidebar';
     angular.module('app').controller(controllerId,
-        ['$location', '$route', 'config', 'routes', sidebar]);
+        ['$location', '$route', 'bootstrap.dialog', 'config', 'datacontext', 'routes', sidebar]);
 
-    function sidebar($location, $route, config, routes) {
+    function sidebar($location, $route, bsDialog, config, datacontext, routes) {
         var vm = this;
         var keyCodes = config.keyCodes;
 
+        vm.clearStorage = clearStorage;
         vm.isCurrent = isCurrent;
         vm.searchText = '';
         vm.search = search;
@@ -16,6 +17,14 @@
         activate();
 
         function activate() { getNavRoutes(); }
+
+        function clearStorage() {
+            return bsDialog.deleteDialog('local storage')
+                .then(confirmDelete, cancelDelete);
+
+            function confirmDelete() { datacontext.zStorage.clear(); }
+            function cancelDelete() {}
+        }
         
         function getNavRoutes() {
             vm.navRoutes = routes.filter(function(r) {
