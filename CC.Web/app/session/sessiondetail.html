@@ -25,20 +25,23 @@
                 <div class="widget-content user">
                     <div>
                         <label>Title</label>
-                        <input data-ng-model="vm.session.title" placeholder="Session title" />
+                        <input data-ng-model="vm.session.title" data-z-validate placeholder="Session title" />
                     </div>
                     <div>
                         <div>
                             <label>Track</label>
-                            <select data-ng-options="t.name for t in vm.tracks" data-ng-model="vm.session.track"></select>
+                            <select data-ng-options="t.name for t in vm.tracks" data-ng-model="vm.session.track"
+                                    data-z-validate></select>
                         </div>
                         <div>
                             <label>Time slot</label>
-                            <select data-ng-options="ts.name for ts in vm.timeslots" data-ng-model="vm.session.timeSlot"></select>
+                            <select data-ng-options="ts.name for ts in vm.timeslots"
+                                    data-ng-model="vm.session.timeSlot" data-z-validate></select>
                         </div>
                         <div>
                             <label>Room</label>
-                            <select data-ng-options="r.name for r in vm.rooms" data-ng-model="vm.session.room"></select>
+                            <select data-ng-options="r.name for r in vm.rooms" data-ng-model="vm.session.room"
+                                    data-z-validate></select>
                         </div>
                         <div>
                             <label>Code</label>
@@ -56,7 +59,7 @@
                             <img data-cc-img-person="{{vm.session.speaker.imageSource}}" class="img-polaroid" />
                             <address>{{vm.session.speaker.fullName}}</address>
                             <select data-ng-options="speaker.fullName for speaker in vm.speakers"
-                                    data-ng-model="vm.session.speaker"></select>
+                                    data-ng-model="vm.session.speaker" data-z-validate></select>
                         </div>
                     </div>
                     <div>

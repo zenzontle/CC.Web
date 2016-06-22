@@ -121,6 +121,7 @@
   <ItemGroup>
     <Content Include="app\attendee\attendees.html" />
     <Content Include="app\attendee\attendees.js" />
+    <Content Include="app\services\model.validation.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\services\repositories.js" />
     <Content Include="app\services\repository.abstract.js" />

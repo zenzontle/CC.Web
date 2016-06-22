@@ -13,6 +13,7 @@
         'breeze.angular',
 
         // 3rd Party Modules
+        'breeze.directives',
         'ui.bootstrap'      // ui-bootstrap (ex: carousel, pagination, dialog)
     ]);
     
