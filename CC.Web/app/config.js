@@ -36,6 +36,7 @@
     var events = {
         controllerActivateSuccess: 'controller.activateSuccess',
         hasChangesChanged: 'datacontext.hasChangedChanged',
+        entitiesChanged: 'datacontext.entitiesChanged',
         spinnerToggle: 'spinner.toggle',
         storage: {
             error: 'store.error',
@@ -66,7 +67,7 @@
     //#region Configure the zStorage
     app.config(['zStorageConfigProvider', function (cfg) {
         cfg.config = {
-            enabled: true,
+            enabled: false,
             key: 'CCAngularBreeze',
             events: events.storage,
             wipKey: 'CCAngularBreeze.wip',

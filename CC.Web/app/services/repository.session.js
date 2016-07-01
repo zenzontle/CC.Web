@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.session';
     angular.module('app').factory(serviceId,
-        ['model', 'repository.abstract', 'zStorage', RepositorySession]);
+        ['model', 'repository.abstract', 'zStorage', 'zStorageWip', RepositorySession]);
 
-    function RepositorySession(model, AbstractRepository, zStorage) {
+    function RepositorySession(model, AbstractRepository, zStorage, zStorageWip) {
         var entityName = model.entityNames.session;
         var EntityQuery = breeze.EntityQuery;
         var orderBy = 'timeSlotId, level, speaker.firstName';
@@ -15,6 +15,7 @@
             this.entityName = entityName;
             this.manager = mgr;
             this.zStorage = zStorage;
+            this.zStorageWip = zStorageWip;
             // Exposed data access functions
             this.create = create;
             this.getById = getById;

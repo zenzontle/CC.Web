@@ -27,6 +27,7 @@
         };
 
         // Shared by repository classes 
+        Ctor.prototype.getEntityByIdOrFromWip = getEntityByIdOrFromWip;
         Ctor.prototype._getAllLocal = _getAllLocal;
         Ctor.prototype._getById = _getById;
         Ctor.prototype._getInlineCount = _getInlineCount;
@@ -39,6 +40,25 @@
         Ctor.prototype.$q = common.$q;
         
         return Ctor;
+
+        function getEntityByIdOrFromWip(val) {
+            var wipEntityKey = val;
+            if (common.isNumber(val)) {
+                val = parseInt(val);
+                wipEntityKey = this.zStorageWip.findWipKeyByEntityId(this.entityName, val);
+                if (!wipEntityKey) {
+                    return this._getById(this.entityName, val);
+                }
+            }
+
+            var importedEntity = this.zStorageWip.loadWipEntity(wipEntityKey);
+            if (importedEntity) {
+                importedEntity.entityAspect.validateEntity();
+                return $.when({ entity: importedEntity, key: wipEntityKey });
+            }
+
+            return $q.reject({ error: 'Couldn\'t find the entity for WIP key' + wipEntityKey });
+        }
 
         function _getAllLocal(resource, ordering, predicate) {
             return EntityQuery.from(resource)

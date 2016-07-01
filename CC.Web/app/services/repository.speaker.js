@@ -3,9 +3,9 @@
 
     var serviceId = 'repository.speaker';
     angular.module('app').factory(serviceId,
-        ['model', 'repository.abstract', 'zStorage', RepositorySpeaker]);
+        ['model', 'repository.abstract', 'zStorage', 'zStorageWip', RepositorySpeaker]);
 
-    function RepositorySpeaker(model, AbstractRepository, zStorage) {
+    function RepositorySpeaker(model, AbstractRepository, zStorage, zStorageWip) {
         var entityName = model.entityNames.speaker;
         var EntityQuery = breeze.EntityQuery;
         var orderBy = 'firstName, lastName';
@@ -16,6 +16,7 @@
             this.entityName = entityName;
             this.manager = mgr;
             this.zStorage = zStorage;
+            this.zStorageWip = zStorageWip;
             // Exposed data access functions
             this.calcIsSpeaker = calcIsSpeaker;
             this.create = create;

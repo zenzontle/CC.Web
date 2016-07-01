@@ -121,6 +121,7 @@
   <ItemGroup>
     <Content Include="app\attendee\attendees.html" />
     <Content Include="app\attendee\attendees.js" />
+    <Content Include="app\services\helper.js" />
     <Content Include="app\services\model.validation.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\services\repositories.js" />
@@ -138,6 +139,9 @@
     <Content Include="app\speaker\speakerdetail.js" />
     <Content Include="app\speaker\speakers.html" />
     <Content Include="app\speaker\speakers.js" />
+    <Content Include="app\wip\wip.html" />
+    <Content Include="app\wip\wip.js" />
+    <Content Include="app\wip\wipwidget.html" />
     <Content Include="ccfavicon.ico" />
     <Content Include="content\breeze.directives.css" />
     <Content Include="fonts\fontawesome-webfont.woff" />
